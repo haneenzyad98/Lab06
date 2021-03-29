@@ -20,20 +20,13 @@ function handleLocation(request, response) {
     console.log(request.query);
     const city = request.query.city;
     console.log("city---->", city);
-
     let location = new Location(city, getLocation)
-    response.send(location)
-}
+    response.send(location)}
 
 function weather(weather) {
     this.forecast = weather.weather.description;
-
-    this.datetime = weather.datetime;
-}
-
-
-
-
+   this.datetime = weather.datetime;}
+   
 function handleWeather(request, response) {
     const data = require('./data/weather.json');
     const restaurants = data.nearby_restaurants;
