@@ -15,7 +15,7 @@ app.get('/weather', handleWeather);
 
 let key=process.env.GEOCODE_API_KEY
 let wekey= process.env.WEACODE_API_KEY
-let PARKSkey= process.env.WEACODE_API_KEY
+// let PARKSkey= process.env.WEACODE_API_KEY
 
 function Location(name, location, latitude, longitude) {
         this.search_query = name,
