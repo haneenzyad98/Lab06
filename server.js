@@ -29,25 +29,24 @@ function Weather(description, valid_date) {
 
 }
 
-function Park(data){
-    this.name=data.fullName;
-    this.address=Object.values(data.addresses[0]).join(',');
-    this.fee =data.entranceFees[0].cost;
-    this.description=data.description;
-    this.url=data.url;
-  }
+// function Park(data){
+//     this.name=data.fullName;
+//     this.address=Object.values(data.addresses[0]).join(',');
+//     this.fee =data.entranceFees[0].cost;
+//     this.description=data.description;
+//     this.url=data.url;
+//   }
 
 
 //   function handlePark(request,response){
-//     const p = request.query.city; 
+//     const p = request.query; 
 //     const url = `https://developer.nps.gov/api/v1/parks?parkCode=${qu}&api_key=${key}`;
 //     superagent.get(url).then(data=> {
-  
-    //   let currentParks=[];
-    //   let parks=data.body.data.slice(0,11);
-      // console.log(parks);
-    //   currentParks= parks.map(element=> new Parks(element));
-      // console.log(currentParks);
+//       let currentParks=[];
+//       let parks=data.body.data.slice(0,11);
+//       console.log(parks);
+//       currentParks= parks.map(element=> new Parks(element));
+//       console.log(currentParks);
 //       response.send(currentParks);
 //     }).catch((err)=> {
 //       console.log('ERROR IN LOCATION API');
@@ -79,7 +78,6 @@ function handleLocation(request, response) {
             console.log(Arr);
             response.send(Arr);
         })
-
     }
 
 
