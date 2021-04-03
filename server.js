@@ -1,88 +1,125 @@
 'use strict';
+// DATABASE_URL=postgres://haneen:0000@localhost:5432/firstdatabase
 
 require('dotenv').config()
-const PORT =process.env.PORT ; 
-const express = require('express'); 
+const PORT = process.env.PORT;
+const express = require('express');
 const cors = require('cors');
 const superagent = require('superagent');
-
-const app = express(); 
+const app = express();
 app.use(cors());
+
+// =============================================================
 app.get('/location', handleLocation);
-app.get('/weather',handleWeather);
-app.get('/Parks',handleParks);
-
-let key=process.env.GEOCODE_API_KEY
-let wekey=process.env.WEATHER_API_KEY
-let pkey = process.env.PARKS_API_KEY;
-
+app.get('/weather', handleWeather);
+app.get('/parks', handlePark);
+app.get('/movies', handlemovies);
+app.get('/yelp', handleyelp);
+//================================================================
 function Location(name, location, latitude, longitude) {
-    this.search_query = name,
+  this.search_query = name,
     this.formatted_query = location,
     this.latitude = latitude,
     this.longitude = longitude
 }
-function Weather(description, valid_date) {
-        this.forecast = description,
-         this.time = valid_date;
-    }
-    
-   
-    function handleLocation(request, response) {
-        
-        const city = request.query.city; 
-        const url = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json&limit=1`;
-        
-        superagent.get(url).then(res=> {
-            const loc = res.body[0];
-            const locData = new Location(request.query.city, loc.display_name, loc.lat, loc.lon);
-            response.status(200).json(locData);
-        })
-    };
-    
-    function handleWeather (request,response){
-            const city = request.query; 
-            console.log(request.query);
-            const url = `https://api.weatherbit.io/v2.0/current?lat=${city.latitude}&lon=${city.longitude}&key=${wekey}&include=minutely`
-        
-        
-            superagent.get(url).then(res=> {
-                    const apii = res.body.data;
-            const locData = new Weather(apii[0].weather.description,apii[0].datetime);
-            // response.status(200).json(locData);
-            let Arr=[]
-            Arr.push(locData)
-            console.log(Arr);
-            response.send(Arr);
-        })
-    };
-    
-   
+function handleLocation(request, response) {
+  let key = process.env.GEOCODE_API_KEY;
+  const city = request.query.city;
+  const url = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json&limit=1`;
+  superagent.get(url).then(res => {
+    const loc = res.body[0];
+    const locData = new Location(request.query.city, loc.display_name, loc.lat, loc.lon);
+    response.status(200).json(locData);
+  })
+};
 
-    
-function handleParks(request,response){
-    let x=request.query.search_query;
-    const url = `https://developer.nps.gov/api/v1/parks?parkCode=${x}&api_key=${pkey}`;
-    superagent.get(url).then(data=> {
-  
-      let currentParks=[];
-      let parks=data.body.data.slice(0,11);
-      console.log(parks);
-      currentParks= parks.map(element=> new Parks(element));
-      console.log(currentParks);
-      response.send(currentParks);
-    }).catch((err)=> {
-      console.log('ERROR IN LOCATION API');
-      console.log(err);
+//=============================================================
+function weather(description, valid_date) {
+  this.forecast = description;
+    this.time = valid_date;
+}
+function handleWeather(request, response) {
+  const lat = request.query.latitude;
+  const lon = request.query.longitude;
+  let key = process.env.WEACODE_API_KEY;
+  const locOBJ = request.query;
+  console.log(request.query);
+  // const url = `https://api.weatherbit.io/v2.0/forecast/daily?lat=${lat}&lon=${lon}&key=${key}`;
+  const url = `https://api.weatherbit.io/v2.0/forecast/daily?lat=${lat}&lon=${lon}&key=${key}`;
+
+  superagent.get(url).then(res => {
+    const api = res.body.data[0];
+    const locData = new weather(api.weather.description, api.datetime);
+    let Arr = []
+    Arr.push(locData)
+    response.status(200).send(Arr);
+  })
+}
+//==================================================================
+function Park(name, address, fee, description, url) {
+  this.name = name,
+    this.address = address,
+    this.fee = fee,
+    this.description = description,
+    this.url = url
+}
+function handlePark(request, response) {
+  let key = process.env.PARKS_API_KEY;
+  const p = request.query;
+  const url = `https://developer.nps.gov/api/v1/parks?${p.search_query}&api_key=${key}&limit=10`;
+  superagent.get(url).then(res => {
+    let apiparks = res.body.data.map(parkObj => {
+      const parkData=new Park(parkObj.fullName,parkObj.addresses[0].line1,parkObj.entranceFees[0].cost,parkObj.description,parkObj.url);
+            return parkData;
     });
+    response.status(200).send(apiparks);
+  })}
+//====================================================================================
+function Movies(title, overview, average_votes, total_votes, image_url, popularity, released_on) {
+  this.title = title;
+  this.overview =overview ;
+  this.average_votes = average_votes;
+  this.total_votes = total_votes;
+  this.popularity =popularity;
+  this.released_on =released_on;
+  this.image_url = image_url;
+}
+function handlemovies(request, response){
+  let key = process.env.MOVIE_API_KEY;
+  let url = `http://api.themoviedb.org/3/movie/top_rated?api_key=${key}&query=${request.query.city}&limit=30`
+  superagent.get(url).then(res => {
+    let apiparks = res.body.results.map(api => {
+    const locData = new Movies(api.title, api.average_votes,api.total_votes,api.image_url,api.popularity,api.released_on);
+   return locData;})
+    response.status(200).send(apiparks);
+  })
+}
+//=======================================================================================
+function Yelp(name,image_url,price,rating,url){
+  this.name=name;
+  this.image_url=image_url;
+  this.price=price;
+  this.rating=rating;
+  this.url=url;
+}
+function handleyelp(request,response){
+  let key = process.env.YELP_API_KEY;
+  let city=request.query.city;
+  let url =`https://api.yelp.com/v3/businesses/search?location=${city}&limit=50`;
+
   
-  }
-  function Parks(data){
-    this.name=data.fullName;
-    this.address=Object.values(data.addresses[0]).join(',');
-    this.fee =data.entranceFees[0].cost;
-    this.description=data.description;
-    this.url=data.url;
-  }
-        
-        app.listen(PORT, ()=> console.log(`App is running on Server on port: ${PORT}`));
+  let x=superagent.get(url).set('Authorization',`Bearer ${key}`).then(api=>{
+    const locData = new Yelp(api.name, api.image_url,api.rating,api.url);
+    return locData;
+  });
+  response.status(200).send(x);
+}
+//==================================================================================
+
+app.listen(PORT, () => console.log(`App is running on Server on port: ${PORT}`));
+
+
+
+
+
+
